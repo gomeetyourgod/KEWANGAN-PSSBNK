@@ -1,0 +1,5 @@
+{
+  "name": "Sistem Pengurusan Yuran Silat",
+  "description": "Sebuah aplikasi web moden untuk menguruskan rekod pembayaran yuran bulanan ahli persatuan silat, lengkap dengan papan pemuka statistik dan pembantu AI untuk laporan.",
+  "requestFramePermissions": []
+}
