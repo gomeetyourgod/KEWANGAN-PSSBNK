@@ -7,7 +7,9 @@ export class GeminiService {
   private ai: GoogleGenAI;
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Vite menggunakan import.meta.env manakala persekitaran lain mungkin menggunakan process.env
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY || '';
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async generateFinancialReport(members: Member[], payments: PaymentRecord[], transactions: Transaction[]) {
@@ -37,7 +39,7 @@ export class GeminiService {
       return response.text;
     } catch (error) {
       console.error("Gemini Error:", error);
-      return "Gagal menjana laporan AI. Sila cuba lagi.";
+      return "Gagal menjana laporan AI. Sila semak API Key anda.";
     }
   }
 
@@ -69,7 +71,38 @@ export class GeminiService {
       return response.text;
     } catch (error) {
       console.error("Gemini Error:", error);
-      return "Gagal menjana laporan tahunan. Pastikan anda mempunyai rekod transaksi.";
+      return "Gagal menjana laporan tahunan.";
+    }
+  }
+
+  async generateCashFlowStatement(transactions: Transaction[]) {
+    const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const dataString = sortedTransactions.map(t => `${t.date}: [${t.type}] ${t.category} - RM${t.amount} (${t.description})`).join('\n');
+
+    const prompt = `
+      Hasilkan satu Penyata Aliran Tunai (Cash Flow Statement) yang profesional untuk persatuan silat dalam Bahasa Melayu.
+      Gunakan data transaksi mentah berikut:
+      ${dataString}
+
+      Format penyata mestilah mengandungi:
+      1. Tajuk: PENYATA ALIRAN TUNAI PERSATUAN SILAT.
+      2. Ringkasan Penerimaan (Inflows) mengikut kategori.
+      3. Ringkasan Pembayaran (Outflows) mengikut kategori.
+      4. Aliran Tunai Bersih (Net Cash Flow).
+      5. Analisis Ringkas: Berikan komen tentang kecairan (liquidity) persatuan dan trend perbelanjaan utama.
+      
+      Pastikan nada laporan adalah formal dan profesional.
+    `;
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+      });
+      return response.text;
+    } catch (error) {
+      console.error("Gemini Error:", error);
+      return "Gagal menjana Penyata Aliran Tunai.";
     }
   }
 
