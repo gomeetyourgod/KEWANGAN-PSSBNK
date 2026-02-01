@@ -1,4 +1,16 @@
 
+export interface User {
+  id: string;
+  username: string;
+  role: 'ADMIN' | 'COACH';
+  lastLogin: string;
+}
+
+export interface AuthSession {
+  user: User;
+  token: string;
+}
+
 export interface Member {
   id: string;
   name: string;

@@ -12,6 +12,33 @@
             font-family: 'Plus+Jakarta+Sans', sans-serif;
             background-color: #f8fafc;
         }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .report-container {
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 20px !important;
+            }
+            header, footer, nav, button {
+                display: none !important;
+            }
+        }
+        
+        .print-only {
+            display: none;
+        }
     </style>
 <script type="importmap">
 {

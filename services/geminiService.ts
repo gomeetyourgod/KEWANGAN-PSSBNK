@@ -7,9 +7,45 @@ export class GeminiService {
   private ai: GoogleGenAI;
 
   constructor() {
-    // Vite menggunakan import.meta.env manakala persekitaran lain mungkin menggunakan process.env
     const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY || '';
     this.ai = new GoogleGenAI({ apiKey });
+  }
+
+  async generateGlobalExecutiveSummary(members: Member[], payments: PaymentRecord[], transactions: Transaction[]) {
+    const totalIn = transactions.filter(t => t.type === 'IN').reduce((acc, t) => acc + t.amount, 0);
+    const totalOut = transactions.filter(t => t.type === 'OUT').reduce((acc, t) => acc + t.amount, 0);
+    const balance = totalIn - totalOut;
+    const unpaidCount = members.length - new Set(payments.filter(p => p.status === 'PAID' && p.month === new Date().getMonth()).map(p => p.memberId)).size;
+
+    const prompt = `
+      Sila hasilkan "LAPORAN EKSEKUTIF KESELURUHAN" untuk Persatuan Silat dalam Bahasa Melayu yang sangat profesional.
+      
+      DATA SISTEM:
+      - Bilangan Ahli Berdaftar: ${members.length}
+      - Jumlah Transaksi Masuk (Yuran/Derma): RM${totalIn}
+      - Jumlah Transaksi Keluar (Kos/Belanja): RM${totalOut}
+      - Baki Tunai Semasa: RM${balance}
+      - Ahli Belum Bayar Yuran Bulan Semasa: ${unpaidCount} orang.
+
+      Format laporan mestilah mempunyai:
+      1. RUMUSAN EKSEKUTIF: Status kesihatan organisasi secara menyeluruh.
+      2. ANALISIS PRESTASI: Adakah kutipan yuran mencukupi untuk menampung kos?
+      3. RISIKO & AMARAN: Contoh: Tunggakan yuran atau perbelanjaan berlebihan.
+      4. PELAN TINDAKAN STRATEGIK: 3 langkah segera yang perlu diambil oleh pengerusi/bendahari.
+
+      Gunakan bahasa yang formal, berwibawa dan membina.
+    `;
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+      });
+      return response.text;
+    } catch (error) {
+      console.error("Gemini Error:", error);
+      return "Gagal menjana Laporan Eksekutif.";
+    }
   }
 
   async generateFinancialReport(members: Member[], payments: PaymentRecord[], transactions: Transaction[]) {
