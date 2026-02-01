@@ -82,6 +82,10 @@ const App: React.FC = () => {
     setTransactions(prev => [...prev, { ...t, id }]);
   }, []);
 
+  const updateTransaction = useCallback((updated: Transaction) => {
+    setTransactions(prev => prev.map(t => t.id === updated.id ? updated : t));
+  }, []);
+
   const deleteTransaction = useCallback((id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
   }, []);
@@ -215,7 +219,7 @@ const App: React.FC = () => {
           {activeTab === 'dashboard' && <Dashboard members={members} payments={payments} transactions={transactions} />}
           {activeTab === 'members' && <MemberList members={members} onAdd={addMember} onUpdate={updateMember} onDelete={deleteMember} />}
           {activeTab === 'payments' && <PaymentMatrix members={members} payments={payments} onTogglePayment={togglePayment} />}
-          {activeTab === 'ledger' && <TransactionLedger members={members} transactions={transactions} onAddTransaction={addTransaction} onDeleteTransaction={deleteTransaction} />}
+          {activeTab === 'ledger' && <TransactionLedger members={members} transactions={transactions} onAddTransaction={addTransaction} onUpdateTransaction={updateTransaction} onDeleteTransaction={deleteTransaction} />}
           {activeTab === 'ai' && <AIAssistant members={members} payments={payments} transactions={transactions} />}
         </div>
       </main>
